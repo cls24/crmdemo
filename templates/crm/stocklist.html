@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <table border="1">
+        <tr>
+            <th>型号</th>
+            <th>厂家</th>
+            <th>单价</th>
+            <th>数量</th>
+        </tr>
+        {% for datum in data %}
+            <tr>
+                <td>{{ datum.pm.model }}</td>
+                <td>{{ datum.pm.fn.name }}</td>
+                <td>{{ datum.pm.value }}</td>
+                <td>{{ datum.number }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+        <table border="1" id="listTb">
+          <tr>
+            <th>订单号</th>
+            <th>时间</th>
+            <th>订单金额</th>
+            <th>欠款金额</th>
+            <th>订单类型</th>
+            <th>客户名</th>
+            <th>订单状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+            {% for item in data %}
+                <tr >
+                <td>{{ item.ordernum }}</td>
+                <td>{{ item.addtime }}</td>
+                <td>{{ item.ordervalue }}</td>
+                <td>{{ item.arrears }}</td>
+                <td>{{ item.on.name }}</td>
+                <td>{{ item.ocn.name }}</td>
+                <td>{{ item.os.name }}</td>
+                <td>{{ item.comment }}</td>
+                <td><a>修改</a>|<a>删除</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+</body>
+</html>
