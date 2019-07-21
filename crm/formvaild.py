@@ -2,6 +2,23 @@ from django import forms
 from crm import models
 import time
 
+class CustomerForm(forms.Form):
+    name = forms.CharField(max_length=32)
+    address = forms.CharField(max_length=128)
+    phone = forms.CharField(max_length=11)
+    ct_id = forms.fields.TypedChoiceField(
+        coerce=lambda x: int(x),
+        label="客户类型",
+        required=True,
+        choices=models.CustomerType.objects.values_list("id","name")
+    )
+    cl_id = forms.fields.TypedChoiceField(
+        coerce=lambda x: int(x),
+        label="客户级别",
+        required=True,
+        choices=models.CustomerLevel.objects.values_list("id","name")
+    )
+
 class CustomerOrderForm(forms.Form):
     ordernum = forms.IntegerField(
         label="订单号",

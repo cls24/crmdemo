@@ -2,8 +2,14 @@ from django.shortcuts import render, HttpResponse, redirect
 from crm import formvaild
 from crm import models
 import json
-
-
+from django.views import View
+def initdata(req):
+    resp = "ok"
+    try:
+        models.initData()
+    except Exception as e:
+        resp = e.__str__()
+    return HttpResponse(resp)
 def createorder(req):
     if req.method == "GET":
         form_obj = formvaild.CustomerOrderForm()
@@ -29,20 +35,52 @@ def createorder(req):
     print(resp)
     return HttpResponse(json.dumps(resp))
 
+def getSelect(req):
+    if req.method == "POST":
+        key = req.POST.get("key")
+        # ocn_id = models.Customer.objects.all().values("id", "name")
+        # print(key)
+        if key == "ocn_id":
+            data = models.Customer.objects.all().values("id", "name")
+            return HttpResponse(json.dumps({"data":list(data)}))
 
-def orderlist(req):
-    if req.method == "GET":
+
+class Orderlist(View):
+    def get(self,req):
         data = models.CustomerOrder.objects.all()
-        return render(req, "crm/orderlist.html", {"data": data})
-
-
+        ocn_id = models.Customer.objects.all().values("id", "name")
+        selectOptions = {
+            "ordernum": "订单号",
+            "ordervalue": "订单总金额",
+            "arrears": "订单欠款",
+            "comment": "备注",
+            "ocn_id": "客户",
+            "ot": "客户类型",
+            "on_id":"订单类型",
+            "os_id":"订单状态"
+        }
+        return render(req,"crm/orderlist.html",{"data": data,"selectOptions": selectOptions})
+    def post(self,req):
+        obj = req.POST
+        return HttpResponse("ok")
 def stocklist(req):
     if req.method == "GET":
         data = models.Stock.objects.all()
         return render(req, "crm/stocklist.html", {"data": data})
 
 
-def storage(req):
-    if req.method == "GET":
+class Storage(View):
+    def get(self,req):
         stock_list = formvaild.StorageForm()
         return render(req, "crm/storage.html", {"stock_list": stock_list})
+
+    def post(self,req):
+        return HttpResponse("post")
+
+class Customer(View):
+    def get(self,req):
+        formObj = formvaild.CustomerForm()
+        return render(req, "crm/customer.html", {"formobj": formObj})
+
+    def post(self,req):
+        return HttpResponse("post")

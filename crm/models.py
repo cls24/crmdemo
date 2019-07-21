@@ -13,7 +13,7 @@ class Customer(Model):
     name = models.CharField(max_length=32)
     address = models.CharField(max_length=128)
     phone = models.CharField(max_length=11)
-    addtime = models.DateField()
+    addtime = models.DateField(auto_now_add=True)
     ct = models.ForeignKey("CustomerType",on_delete=models.CASCADE)
     cl = models.ForeignKey("CustomerLevel",on_delete=models.CASCADE)
 
@@ -79,3 +79,28 @@ class PurchaseOrder(Model):
 class PurchaseOrderList(Model):
     order = models.ForeignKey("PurchaseOrder",on_delete=models.CASCADE)
     pm = models.ForeignKey("ProductModel",on_delete=models.CASCADE)
+
+
+def initData():
+    role_data = {"name":"admin"}
+    Role().objects.create(**role_data)
+
+    user_data = {"name":"admin","password":"admin","r_id":1}
+    User().objects.create(**user_data)
+
+    li = [{"name":"经销商"},{"name":"个人"}]
+    li = list(map(lambda x:CustomerType(**x),li))
+    CustomerType.objects.bulk_create(li)
+
+    li = [{"name":"优质"},{"name":"普通"},{"name":"失信"},{"name":"黑名单"}]
+    li = list(map(lambda x:CustomerLevel(**x),li))
+    CustomerLevel.objects.bulk_create(li)
+
+    li = [{"name":"完成"},{"name":"未完成"}]
+    li = list(map(lambda x:OrderStatus(**x),li))
+    OrderStatus.objects.bulk_create(li)
+
+    li = [{"name":"零售"},{"name":"批发"},{"name":"租赁"},{"name":"维修"}]
+    li = list(map(lambda x:CustomerOrderType(**x),li))
+    CustomerOrderType.objects.bulk_create(li)
+

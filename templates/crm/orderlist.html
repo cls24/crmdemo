@@ -20,7 +20,7 @@
             {% for item in data %}
                 <tr >
                 <td>{{ item.ordernum }}</td>
-                <td>{{ item.addtime }}</td>
+                <td>{{ item.addtime|date:"Y-m-d H:i:s"  }}</td>
                 <td>{{ item.ordervalue }}</td>
                 <td>{{ item.arrears }}</td>
                 <td>{{ item.on.name }}</td>
@@ -31,5 +31,83 @@
                 </tr>
             {% endfor %}
         </table>
+            {% csrf_token %}
+            <div >
+                <div id="searchOrder">
+                 <label for="search">search</label>
+                    <select id="condition">
+                        {% for k,v in selectOptions.items %}
+                            <option value="{{ k }}">{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        <div>
+            <button onclick="addCondition()">添加条件</button>
+            <a href="" onclick="searchOrders()">search</a>
+        </div>
+        <div id="searchinput">
+
+        </div>
+
+        <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+        function deleteProduct(dom) {
+            $(dom).parent().remove();
+        }
+        function searchOrders() {
+            $.ajax({
+                url: "/crm/orderlist",
+                method: "POST",
+                data: data,
+                success: function (arg) {
+
+                }
+            })
+        }
+        function addCondition() {
+            let c = $('#condition option:selected')
+            let key = c.val()
+            let text = c.text()
+            let div = document.getElementById("searchinput")
+            let t = ''
+            if (key === "ordernum"||key === "ordervalue"||key === "arrears"||key === "comment") {
+                t = createHtml('<input>', text)
+                $(div).append(t)
+            }else {
+                t = getSelect(key,text)
+
+            }
+            console.log(t)
+            $(div).append(t)
+
+        }
+        function getSelectCallback(arg,text) {
+            let options = ''
+            for (let i = 0; i <arg.length ; i++) {
+                options+=`<option value="${arg[i].id}">${arg[i].name}</option>`
+            }
+            let select = '<select>' +options+ '</select>'
+            let t = createHtml(select,text)
+            return t
+        }
+        function createHtml(dom,text) {
+            let t = '<div>' +
+                `<label>${text}</label>${dom}<a href="#" onclick="deleteProduct(this)">删除</a>` +
+                '</div>'
+            return t
+        }
+        function getSelect(key,text) {
+            $.ajax({
+                url: "/crm/getselect",
+                method: "POST",
+                data: {"key":key,csrfmiddlewaretoken:'{{ csrf_token }}'},
+                success: function (arg) {
+                    getSelectCallback(arg,text)
+                }
+            })
+        }
+    </script>
 </body>
 </html>

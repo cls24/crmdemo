@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app01',
     'crm',
 ]
 
@@ -48,8 +47,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'md.M1',
-    # 'md.M2',
 ]
 
 ROOT_URLCONF = 'django_demo.urls'
@@ -84,10 +81,10 @@ DATABASES = {
     # } ,
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydata',
+        'NAME': 'mydata1',
         'USER':'root',
         'PASSWORD':'123456',
-        'HOST':'192.168.0.130',
+        'HOST':'192.168.31.95',
         'PORT':'3306',
     },
 }
