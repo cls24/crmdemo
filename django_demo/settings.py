@@ -73,7 +73,6 @@ WSGI_APPLICATION = 'django_demo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
@@ -81,10 +80,13 @@ DATABASES = {
     # } ,
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydata1',
+        'OPTIONS': {
+            'read_default_file':os.path.join(os.getcwd(),"my.cnf"),
+        },
+        'NAME': 'mydata',
         'USER':'root',
         'PASSWORD':'123456',
-        'HOST':'192.168.31.95',
+        'HOST':'192.168.0.130',
         'PORT':'3306',
     },
 }
