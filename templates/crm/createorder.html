@@ -1,11 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>createorder</title>
-</head>
-<body>
-    <h1>createorder</h1>
+
+{% extends 'base.html' %}
+
+{% block content %}
+      <div class="row">
+    <div class="col-4">
+        <div class="row">
+            <div class="col">
+                <h4>创建订单</h4>
+            </div>
+            <span></span>
+            <div class="col-4">
+            <button type="button" class="btn btn-success" onclick="AjaxPost()">提交数据</button>
+
+            </div>
+        </div>
+
     <form action="createorder" method="post" id="f1">
         {% csrf_token %}
         <p>{{ formObj.ordernum.label }}{{ formObj.ordernum}}{{ formObj.errors.ordernum.0 }}</p>
@@ -15,83 +24,91 @@
         <p>{{ formObj.ordervalue.label }}{{ formObj.ordervalue}}{{ formObj.errors.ordervalue.0 }}</p>
         <p>{{ formObj.arrears.label }}{{ formObj.arrears}}{{ formObj.errors.arrears.0 }}</p>
         <p>{{ formObj.comment.label }}{{ formObj.comment}}{{ formObj.errors.comment.0 }}</p>
-        <div>
-            <h4>订单列表</h4><a onclick="addProduct()">添加型号</a>
-        </div>
-        <p><a type="submit" onclick="AjaxPost()">提交数据</a></p>
     </form>
-        <table border="1" id="listTb">
+    </div>
+    <div class="col-8">
+          <div>
+            <button type="button" class="btn btn-primary" onclick="addProduct()">添加型号</button>
+        </div>
+        <h6>订单列表</h6>
+        <table border="1" id="listTb" class="table table-bordered">
           <tr>
             <th>型号</th>
             <th>数量</th>
-            <th>删除</th>
+            <th>操作</th>
           </tr>
           <tr id="tr">
             <td>{{ orderList.pm_id}}{{ orderList.errors.pm_id.0 }}</td>
             <td>{{ orderList.productnum}}{{ orderList.errors.productnum.0 }}</td>
           </tr>
         </table>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-    <script>
-        function deleteProduct(dom) {
-            $(dom).parent().parent().remove();
-        }
-        function addProduct() {
-            let tr = document.getElementById("tr")
-            let clonedNode = tr.cloneNode(true)
-           $(clonedNode).append('<td><a onclick="deleteProduct(this)">删除</a></td>')
-            tr.parentNode.appendChild(clonedNode)
-        }
-        function getTbList() {
-            let trs = $("#listTb").children().children()
-            let list = []
-            for (let i = 1; i < trs.length; i++) {
-                let tds = $(trs[i]).children()
-                {#'model': '1', 'productnum': 1#}
-                let obj = {}
-                for (let j = 0; j < tds.length; j++) {
-                    let tmp = tds[j].children[0]
-                    if (tmp.nodeName === "SELECT") {
-                        obj[tmp.name] = tmp.value
-                    } else if (tmp.nodeName === "INPUT") {
-                        obj[tmp.name] = parseInt(tmp.value)
-                    }
+
+    </div>
+  </div>
+
+
+{% endblock %}
+{% block script %}
+<script>
+    function deleteProduct(dom) {
+        $(dom).parent().parent().remove();
+    }
+    function addProduct() {
+        let tr = document.getElementById("tr")
+        let clonedNode = tr.cloneNode(true)
+       $(clonedNode).append('<td><a onclick="deleteProduct(this)">删除</a></td>')
+        tr.parentNode.appendChild(clonedNode)
+    }
+    function getTbList() {
+        let trs = $("#listTb").children().children()
+        let list = []
+        for (let i = 1; i < trs.length; i++) {
+            let tds = $(trs[i]).children()
+            {#'model': '1', 'productnum': 1#}
+            let obj = {}
+            for (let j = 0; j < tds.length; j++) {
+                let tmp = tds[j].children[0]
+                if (tmp.nodeName === "SELECT") {
+                    obj[tmp.name] = tmp.value
+                } else if (tmp.nodeName === "INPUT") {
+                    obj[tmp.name] = parseInt(tmp.value)
                 }
-                list.push(obj)
             }
-            return list
+            list.push(obj)
         }
-        function clearErr() {
-            let e = $(".err")
-            for (let i = 0; i <e.length ; i++) {
-                e[i].remove()
-            }
+        return list
+    }
+    function clearErr() {
+        let e = $(".err")
+        for (let i = 0; i <e.length ; i++) {
+            e[i].remove()
         }
-        function AjaxPost() {
-            clearErr()
-            let data = $("#f1").serialize()
-            data+="&orderList="+JSON.stringify(getTbList())
-            {#console.log(data)#}
-            $.ajax({
-            url:"/crm/createorder",
-            method:"POST",
-            data: data,
-            success:function (arg) {
-                let m = JSON.parse(arg)
-                if (m.status === 'err'){
-                    for (let i in m.err) {
-                        let tmp = m.err[i]
-                        $(`input[name|=${i}`).after(`<span class="err">${tmp}</span>`)
-                    }
-                }else {
-                    location.replace("/crm/orderlist")
+    }
+    function AjaxPost() {
+        clearErr()
+        let data = $("#f1").serialize()
+        data+="&orderList="+JSON.stringify(getTbList())
+        {#console.log(data)#}
+        $.ajax({
+        url:"/crm/createorder",
+        method:"POST",
+        data: data,
+        success:function (arg) {
+            let m = JSON.parse(arg)
+            if (m.status === 'err'){
+                for (let i in m.err) {
+                    let tmp = m.err[i]
+                    $(`input[name|=${i}`).after(`<span class="err">${tmp}</span>`)
                 }
-            },
-            error:function (arg) {
-                console.log(arg)
-            },
-            })
-        }
-    </script>
-</body>
-</html>
+            }else {
+                location.replace("/crm/orderlist")
+            }
+        },
+        error:function (arg) {
+            console.log(arg)
+        },
+        })
+    }
+</script>
+{% endblock script %}
+

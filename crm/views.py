@@ -17,11 +17,15 @@ def genConditions(lst):
     # lst = [{"key1":[]},{"key2":[]},{"key3":[]}]
     for i in lst:
         q = Q()
-        q.connector = "OR"
-        for j in i[1]:
-            q.children.append((i[0],j))
+        if i[0] == "addtime" or i[0] == "ordervalue" or i[0] == "arrears":
+            q.connector = "AND"
+            q.children.append((i[0]+"__gte", i[1][0]))
+            q.children.append((i[0]+"__lte", i[1][1]))
+        else:
+            q.connector = "OR"
+            for j in i[1]:
+                q.children.append((i[0],j))
         con.add(q,"AND")
-
     return con
 def initdata(req):
     resp = "ok"
@@ -71,6 +75,17 @@ def getSelect(req):
             data = models.CustomerType.objects.all().values("id", "name")
             return HttpResponse(json.dumps({"data":list(data)}))
 
+def orderListDetail(req):
+    colsMap = {
+        "pm__model": "产品型号",
+        "pm__value": "产品单价",
+        "productnum": "产品数量",
+    }
+    orderNum = req.POST.get("orderNum")
+    ret = models.OrderList.objects.filter(order_id=orderNum).select_related("pm_id").values("pm__model","pm__value","productnum")
+    print(list(ret))
+    return HttpResponse(json.dumps({"data":list(ret),"orderdetailhead":colsMap}))
+
 class Orderlist(View):
     colsMap = {
         "ordernum": "订单号",
@@ -81,16 +96,18 @@ class Orderlist(View):
         "ocn__ct__name": "客户类型",
         "on__name": "订单类型",
         "os__name": "订单状态",
-        "comment": "备注"
+        "comment": "备注",
     }
+
     def get(self,req):
         return render(req,"crm/orderlist.html",{"selectOptions": self.colsMap})
+
     def paser(self,x):
-        tmp = ""
+        tmp = x[0]
         if "__name" in x[0]:
             tmp = x[0].replace("_name", "id")
-        elif "comment" in x[0]:
-            tmp = x[0].replace("comment","comment__contains")
+        elif "comment" == x[0]:
+            tmp = x[0]+"__contains"
         return (tmp,x[1])
 
     def post(self,req):
@@ -106,8 +123,7 @@ class Orderlist(View):
         #         if k == "comment":
         #             ipt[k+"__contains"]=v
         ret = models.CustomerOrder.objects.filter(genConditions(obj)).select_related("on_id","os_id","ocn_id").values(
-            *self.colsMap.keys()
-        )
+            *self.colsMap.keys())
         print(ret.query)
         # print(list(ret))
         return HttpResponse(json.dumps({"data":list(ret),"tablehead":self.colsMap},cls=DateEncoder))
@@ -132,3 +148,6 @@ class Customer(View):
 
     def post(self,req):
         return HttpResponse("post")
+
+def home(request):
+    return render(request,'crm/index.html',{'title':'index'})

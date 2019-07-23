@@ -18,10 +18,12 @@ from django.urls import path,include,re_path
 from crm import views
 urlpatterns = [
     path('createorder', views.createorder),
+    path('orderlistdetail', views.orderListDetail),
     path('getselect', views.getSelect),
     path('orderlist', views.Orderlist.as_view()),
     path('stocklist', views.stocklist),
     path('initdata', views.initdata),
     path('storage', views.Storage.as_view()),
     path('customer', views.Customer.as_view()),
+    path('home',views.home)
 ]

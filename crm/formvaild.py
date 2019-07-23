@@ -30,10 +30,6 @@ class CustomerOrderForm(forms.Form):
             "min_value": "不能为负数",
         }
     )
-    # addtime = forms.fields.DateTimeField(
-    #     label="时间",
-    #     required=True,
-    # )
     ordervalue = forms.fields.FloatField(
         label="订单金额",
         required=True,
@@ -78,6 +74,13 @@ class CustomerOrderForm(forms.Form):
         required=True,
         choices=models.CustomerOrderType.objects.values_list("id","name")
     )
+    ordernum.widget.attrs.update({'class': 'form-control'})
+    ordervalue.widget.attrs.update({'class': 'form-control'})
+    arrears.widget.attrs.update({'class': 'form-control'})
+    os_id.widget.attrs.update({'class': 'form-control'})
+    comment.widget.attrs.update({'class': 'form-control'})
+    ocn_id.widget.attrs.update({'class': 'form-control'})
+    on_id.widget.attrs.update({'class': 'form-control'})
 
 class OrderListForm(forms.Form):
     pm_id = forms.fields.TypedChoiceField(
@@ -98,6 +101,8 @@ class OrderListForm(forms.Form):
             "min_value": "不能为负数",
         }
     )
+    pm_id.widget.attrs.update({'class': 'form-control'})
+    productnum.widget.attrs.update({'class': 'form-control'})
 class StorageForm(forms.Form):
     # fn_id = forms.TypedChoiceField(
     #     coerce=lambda x: int(x),

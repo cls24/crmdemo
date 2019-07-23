@@ -1,150 +1,214 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-        <table border="1" id="listTb">
-        </table>
-            <div >
-                <div id="searchOrder">
-                 <label for="search">search</label>
-                    <select id="condition">
-                        {% for k,v in selectOptions.items %}
-                            <option value="{{ k }}">{{ v }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
+{% extends 'base.html' %}
+{% block content %}
+    <div class="row">
+        <div class="col-2">
+            <div>
         <div>
-            <button onclick="addCondition()">添加条件</button>
-            <a href="#" onclick="searchOrders()">search</a>
+            <div id="searchOrder">
+                <label for="search" class="col-form-label-sm">条件</label>
+                <select id="condition" class="form-control-sm">
+                    {% for k,v in selectOptions.items %}
+                        <option value="{{ k }}">{{ v }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div>
+            <button class="btn-sm btn-primary" onclick="addCondition()">添加条件</button>
+            <a href="#" onclick="searchOrders()">开始搜索</a>
         </div>
         <div id="searchinput">
+        </div>
+    </div>
+        </div>
+        <div class="col-10" id="listTb">
 
         </div>
+    </div>
+    {% include "crm/motal.html" with title="订单详情"%}
+{% endblock %}
 
-        <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-
+{% block script %}
     <script>
+
         function deleteProduct(dom) {
             $(dom).parent().remove();
         }
+
         function getConditions() {
             let doms = $("#searchinput > div")
-            let obj = {"select":null,"input":null}
+            let obj = {"select": null, "input": null}
             let select = {}
             let input = {}
-            for (let i = 0; i <doms.length ; i++) {
+            for (let i = 0; i < doms.length; i++) {
                 let tmp = doms[i].children
                 let val = tmp[1].value
                 let name = tmp[1].name
-                if (tmp[1].tagName === 'SELECT'){
+                if (tmp[1].tagName === 'SELECT') {
                     let v = parseInt(val)
                     if (name in select) {
                         select[name].push(v)
-                    }else {
+                    } else {
                         select[name] = [v]
                     }
-                }else if(tmp[1].name === "comment"){
+                } else if (tmp[1].name === "comment") {
                     input[name] = val
+                } else if (tmp[1].name === "addtime") {
                 }
-                obj.select=select
-                obj.input=input
+                obj.select = select
+                obj.input = input
             }
             return obj
         }
+
         function getConditions2() {
             let doms = $("#searchinput > div")
             let obj = {}
-            for (let i = 0; i <doms.length ; i++) {
+            for (let i = 0; i < doms.length; i++) {
                 let tmp = doms[i].children
-                let val = tmp[1].value
+                let v = tmp[1].value
                 let name = tmp[1].name
-                let v =tmp[1].tagName === 'SELECT'?parseInt(val):val
-                if (name in obj) {
-                    obj[name].push(v)
-                }else {
-                    obj[name] = [v]
+                if (tmp[1].type === 'datetime-local' || name === "ordervalue" || name === "arrears") {
+                    obj[name] = [tmp[1].value, tmp[3].value]
+                } else {
+                    if (name in obj) {
+                        obj[name].push(v)
+                    } else {
+                        obj[name] = [v]
+                    }
                 }
             }
             console.log(obj)
             return obj
         }
-        function makeColums(data) {
-                        {#console.log(data)#}
-            let tb = $("#listTb")
+
+        function makeColums(id,data) {
+            let tb = $(id)
             tb.empty()
             let trs = ''
             let t = ''
-            for(let key in data.tablehead){
-                t += `<td>${data.tablehead[key]}</td>`
+            for (let key in data.tablehead) {
+                t += `<th>${data.tablehead[key]}</th>`
             }
-            trs+=`<tr>${t}</tr>`
+            trs += `<thead class="thead-light"><tr>${t}<th>操作</th></tr></thead>`
             for (let d of data.data) {
                 let t = ''
-                for(let key in d){
-                    t += `<th>${d[key]}</th>`
+                for (let key in d) {
+                    t += `<th >${d[key]}</th>`
                 }
-                trs+=`<tr>${t}</tr>`
+                trs += `<tbody class=""><tr>${t}<td><a href="#" onclick="showOrderDetail(this)">详细</a>|<a href="#">编辑</a></td></tr></tbody>`
             }
-            tb.append(trs)
+            console.log(trs)
+            tb.append(`<table class="table table-hover table-bordered">${trs}</table>`)
         }
+        function makeOrderDetail(id) {
+            let tb = $(id)
+            tb.empty()
+            tb.append("asd")
+        }
+        $('#exampleModal').on('show.bs.modal', function (event) {
+          var button = $(event.relatedTarget) // Button that triggered the modal
+          var recipient = button.data('whatever') // Extract info from data-* attributes
+          var modal = $(this)
+          modal.find('.modal-title').text('New message to ' + recipient)
+          modal.find('.modal-body input').val(recipient)
+        })
+        function showOrderDetail(e) {
+            $('#motalbody').append('<span>span</span>')
+                    $('#mymotal').modal('show')
+                    $('#listTb').append('<h1>h1</h1>')
+
+            {#let orderNum = $(e).parent().parent().children().first()[0].innerText#}
+            {#let data = {"orderNum": orderNum, csrfmiddlewaretoken: '{{ csrf_token }}'}#}
+            {#$.ajax({#}
+            {#    url: "/crm/orderlistdetail",#}
+            {#    method: "POST",#}
+            {#    data: {"data": data, csrfmiddlewaretoken: '{{ csrf_token }}'},#}
+            {#    success: function (arg) {#}
+                    {#makeColums("#motalbody",JSON.parse(arg))#}
+            {#        $('#mymotal').modal('show')#}
+            {#    }#}
+            {#}#}
+            {#)#}
+        }
+
         function searchOrders() {
-            getConditions2()
-            let data = {"data":JSON.stringify(getConditions2()),csrfmiddlewaretoken:'{{ csrf_token }}'}
+            let data = {"data": JSON.stringify(getConditions2()), csrfmiddlewaretoken: '{{ csrf_token }}'}
             $.ajax({
                 url: "/crm/orderlist",
                 method: "POST",
                 data: data,
                 success: function (arg) {
-                    makeColums(JSON.parse(arg))
-                }})
+                    console.log(JSON.parse(arg))
+                    makeColums("#listTb",JSON.parse(arg))
+                }
+            })
         }
+
+        function formatDateTime(d) {
+            let _M = d.getMonth() + 1
+            let M = _M < 10 ? '0' + _M : _M
+            let D = d.getDate() < 10 ? '0' + d.getDate() : d.getDate()
+            let H = d.getHours() < 10 ? '0' + d.getHours() : d.getHours()
+            let m = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()
+            return d.getFullYear() + '-' + M + '-' + D + 'T' + H + ':' + m
+        }
+
         function addCondition() {
             let c = $('#condition option:selected')
             let key = c.val()
             let text = c.text()
             let div = document.getElementById("searchinput")
             let t = ''
-            if (key === "ordernum"||key === "ordervalue"||key === "arrears"||key === "comment") {
-                t = createHtml(`<input name="${key}">`, text)
+            let now = formatDateTime(new Date())
+            if (key === "comment" || key === "ordernum") {
+                t = createHtml(`<label>${text}</label><input name="${key}">`)
                 $(div).append(t)
-            }else {
-                {#getSelect(key,text)#}
-                let promise = new Promise(function(resolve){
+            } else if (key === "addtime") {
+                t = createHtml(
+                    `<label>${text}从</label><input type="datetime-local" value="${now}" name="${key}">
+<label>到</label><input type="datetime-local" value="${now}" name="${key}">`
+                )
+                $(div).append(t)
+            } else if (key === "ordervalue" || key === "arrears") {
+                t = createHtml(
+                    `<label>${text}从</label><input type="number" value="${now}" name="${key}">
+<label>到</label><input type="number" value="${now}" name="${key}">`
+                )
+                $(div).append(t)
+            } else {
+                let promise = new Promise(function (resolve) {
                     resolve()
                 });
-                promise.then(function(){
+                promise.then(function () {
                     $.ajax({
                         url: "/crm/getselect",
                         method: "POST",
-                        data: {"key":key,csrfmiddlewaretoken:'{{ csrf_token }}'},
+                        data: {"key": key, csrfmiddlewaretoken: '{{ csrf_token }}'},
                         success: function (arg) {
-                            t = getSelectCallback(JSON.parse(arg).data,text,key)
+                            t = getSelectCallback(JSON.parse(arg).data, text, key)
                             $(div).append(t)
                         }
                     })
                 })
             }
         }
-        function getSelectCallback(arg,text,key) {
+
+        function getSelectCallback(arg, text, key) {
             let options = ''
-            for (let i = 0; i <arg.length ; i++) {
-                options+=`<option value="${arg[i].id}">${arg[i].name}</option>`
+            for (let i = 0; i < arg.length; i++) {
+                options += `<option value="${arg[i].id}">${arg[i].name}</option>`
             }
-            let select = `<select name="${key}">` +options+ '</select>'
-            let t = createHtml(select,text)
-            return t
-        }
-        function createHtml(dom,text) {
-            let t = '<div>' +
-                `<label>${text}</label>${dom}<a href="#" onclick="deleteProduct(this)">删除</a>` +
-                '</div>'
+            let select = `<label>${text}</label><select name="${key}">` + options + '</select>'
+            let t = createHtml(select)
             return t
         }
 
+        function createHtml(dom) {
+            let t = '<div>' +
+                `${dom}<a href="#" onclick="deleteProduct(this)">删除</a>` +
+                '</div>'
+            return t
+        }
     </script>
-</body>
-</html>
+{% endblock script %}
