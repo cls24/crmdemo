@@ -113,25 +113,20 @@
           modal.find('.modal-title').text('New message to ' + recipient)
           modal.find('.modal-body input').val(recipient)
         })
+
         function showOrderDetail(e) {
-            $('#motalbody').append('<span>span</span>')
+            let orderNum = $(e).parent().parent().children().first()[0].innerText
+            let data = {"orderNum": orderNum, csrfmiddlewaretoken: '{{ csrf_token }}'}
+            $.ajax({
+                url: "/crm/orderlistdetail",
+                method: "POST",
+                data: {"data": data, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function (arg) {
+                    makeColums("#motalbody",JSON.parse(arg))
                     $('#mymotal').modal('show')
-                    $('#listTb').append('<h1>h1</h1>')
-
-            {#let orderNum = $(e).parent().parent().children().first()[0].innerText#}
-            {#let data = {"orderNum": orderNum, csrfmiddlewaretoken: '{{ csrf_token }}'}#}
-            {#$.ajax({#}
-            {#    url: "/crm/orderlistdetail",#}
-            {#    method: "POST",#}
-            {#    data: {"data": data, csrfmiddlewaretoken: '{{ csrf_token }}'},#}
-            {#    success: function (arg) {#}
-                    {#makeColums("#motalbody",JSON.parse(arg))#}
-            {#        $('#mymotal').modal('show')#}
-            {#    }#}
-            {#}#}
-            {#)#}
+                }
+            })
         }
-
         function searchOrders() {
             let data = {"data": JSON.stringify(getConditions2()), csrfmiddlewaretoken: '{{ csrf_token }}'}
             $.ajax({
