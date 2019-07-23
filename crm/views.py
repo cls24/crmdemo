@@ -82,9 +82,11 @@ def orderListDetail(req):
         "productnum": "产品数量",
     }
     orderNum = req.POST.get("orderNum")
+    print(req.POST)
     ret = models.OrderList.objects.filter(order_id=orderNum).select_related("pm_id").values("pm__model","pm__value","productnum")
+    print(ret.query)
     print(list(ret))
-    return HttpResponse(json.dumps({"data":list(ret),"orderdetailhead":colsMap}))
+    return HttpResponse(json.dumps({"data":list(ret),"tablehead":colsMap}))
 
 class Orderlist(View):
     colsMap = {

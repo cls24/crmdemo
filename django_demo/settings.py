@@ -83,10 +83,10 @@ DATABASES = {
         'OPTIONS': {
             'read_default_file':os.path.join(os.getcwd(),"my.cnf"),
         },
-        'NAME': 'mydata',
+        'NAME': 'mydata1',
         'USER':'root',
         'PASSWORD':'123456',
-        'HOST':'192.168.0.130',
+        'HOST':'192.168.31.95',
         'PORT':'3306',
     },
 }

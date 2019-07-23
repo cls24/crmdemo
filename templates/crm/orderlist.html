@@ -1,27 +1,26 @@
 {% extends 'base.html' %}
 {% block content %}
     <div class="row">
-        <div class="col-2">
+        <div class="col-12">
             <div>
         <div>
             <div id="searchOrder">
-                <label for="search" class="col-form-label-sm">条件</label>
+                <label for="search" class="col-form-label-sm">查询条件</label>
                 <select id="condition" class="form-control-sm">
                     {% for k,v in selectOptions.items %}
                         <option value="{{ k }}">{{ v }}</option>
                     {% endfor %}
                 </select>
+                        <button class="btn-sm btn-success" onclick="addCondition()">添加条件</button>
+            <button class="btn-sm btn-primary" onclick="searchOrders()">开始搜索</button>
             </div>
         </div>
-        <div>
-            <button class="btn-sm btn-primary" onclick="addCondition()">添加条件</button>
-            <a href="#" onclick="searchOrders()">开始搜索</a>
-        </div>
+
         <div id="searchinput">
         </div>
     </div>
         </div>
-        <div class="col-10" id="listTb">
+        <div class="col-12" id="listTb">
 
         </div>
     </div>
@@ -78,52 +77,38 @@
                     }
                 }
             }
-            console.log(obj)
             return obj
         }
 
         function makeColums(id,data) {
             let tb = $(id)
             tb.empty()
-            let trs = ''
+            let thead = ''
+            let tbody = ''
             let t = ''
             for (let key in data.tablehead) {
                 t += `<th>${data.tablehead[key]}</th>`
             }
-            trs += `<thead class="thead-light"><tr>${t}<th>操作</th></tr></thead>`
+            thead += `<thead class="thead-light"><tr>${t}<th>操作</th></tr></thead>`
             for (let d of data.data) {
-                let t = ''
+                t = ''
                 for (let key in d) {
-                    t += `<th >${d[key]}</th>`
+                    t += `<td >${d[key]}</td>`
                 }
-                trs += `<tbody class=""><tr>${t}<td><a href="#" onclick="showOrderDetail(this)">详细</a>|<a href="#">编辑</a></td></tr></tbody>`
+                tbody += `<tr>${t}<td><a href="#" onclick="showOrderDetail(this)">详细</a>|<a href="#">编辑</a></td></tr>`
             }
-            console.log(trs)
-            tb.append(`<table class="table table-hover table-bordered">${trs}</table>`)
+            tb.append(`<table class="table table-hover table-bordered">${thead}<tbody class="">${tbody}</tbody></table>`)
         }
-        function makeOrderDetail(id) {
-            let tb = $(id)
-            tb.empty()
-            tb.append("asd")
-        }
-        $('#exampleModal').on('show.bs.modal', function (event) {
-          var button = $(event.relatedTarget) // Button that triggered the modal
-          var recipient = button.data('whatever') // Extract info from data-* attributes
-          var modal = $(this)
-          modal.find('.modal-title').text('New message to ' + recipient)
-          modal.find('.modal-body input').val(recipient)
-        })
-
         function showOrderDetail(e) {
             let orderNum = $(e).parent().parent().children().first()[0].innerText
             let data = {"orderNum": orderNum, csrfmiddlewaretoken: '{{ csrf_token }}'}
             $.ajax({
                 url: "/crm/orderlistdetail",
                 method: "POST",
-                data: {"data": data, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                data: data,
                 success: function (arg) {
-                    makeColums("#motalbody",JSON.parse(arg))
-                    $('#mymotal').modal('show')
+                    makeColums('#modalbody',JSON.parse(arg))
+                    $('#mymodal').modal('show')
                 }
             })
         }
@@ -134,7 +119,6 @@
                 method: "POST",
                 data: data,
                 success: function (arg) {
-                    console.log(JSON.parse(arg))
                     makeColums("#listTb",JSON.parse(arg))
                 }
             })
@@ -172,19 +156,14 @@
                 )
                 $(div).append(t)
             } else {
-                let promise = new Promise(function (resolve) {
-                    resolve()
-                });
-                promise.then(function () {
-                    $.ajax({
-                        url: "/crm/getselect",
-                        method: "POST",
-                        data: {"key": key, csrfmiddlewaretoken: '{{ csrf_token }}'},
-                        success: function (arg) {
-                            t = getSelectCallback(JSON.parse(arg).data, text, key)
-                            $(div).append(t)
-                        }
-                    })
+                $.ajax({
+                    url: "/crm/getselect",
+                    method: "POST",
+                    data: {"key": key, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    success: function (arg) {
+                        t = getSelectCallback(JSON.parse(arg).data, text, key)
+                        $(div).append(t)
+                    }
                 })
             }
         }
