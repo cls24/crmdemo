@@ -24,7 +24,7 @@ class CustomerOrderForm(forms.Form):
         label="订单号",
         required=True,
         min_value=0,
-        initial=int(time.strftime("%Y%m%d%H%M", time.localtime())),
+        # initial=1,
         error_messages={
             "required": "不能为空",
             "min_value": "不能为负数",

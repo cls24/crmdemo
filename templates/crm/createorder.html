@@ -9,7 +9,7 @@
                 <button type="button" class="btn btn-sm btn-primary" onclick="addProduct()">添加型号</button>
             </div>
             <h6>订单列表</h6>
-            <table border="1" id="listTb" class="table table-bordered">
+            <table border="1" id="listTb" class="table table-sm table-bordered">
                 <thead>
                 <tr>
                     <th>型号</th>
@@ -49,6 +49,10 @@
 {% endblock %}
 {% block script %}
     <script>
+        $(document).ready(function (){
+            $("#id_ordernum").val(getIntTime())
+        });
+
         function deleteProduct(dom) {
             $(dom).parent().parent().remove();
             calcordervalue()

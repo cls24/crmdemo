@@ -4,7 +4,7 @@ from crm import formvaild
 from crm import models
 import json
 from django.views import View
-import datetime
+import datetime,time
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj,datetime.datetime):
@@ -40,6 +40,7 @@ def createorder(req):
         form_obj = formvaild.CustomerOrderForm()
         order_list = formvaild.OrderListForm()
         factory_select = formvaild.FactorySelectForm()
+        # time.strftime("%Y%m%d%H%M%S", time.localtime())
         return render(req, "crm/createorder.html", {"formObj": form_obj, "orderList": order_list,"factory_select":factory_select})
     formObj = formvaild.CustomerOrderForm(req.POST)
     resp = {"msg": "", "status": "ok", "err": formObj.errors}
