@@ -1,37 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>storage</h1>
-    <div>
-        <h4>订单列表</h4><a onclick="addProduct()">添加型号</a>
-    </div>
-    <table border="1" id="listTb">
-      <tr>
-        <th>型号</th>
-        <th>数量</th>
-        <th>删除</th>
-      </tr>
-      <tr id="tr">
-        <td>{{ stock_list.pm_id}}{{ stock_list.errors.pm_id.0 }}</td>
-        <td>{{ stock_list.number}}{{ stock_list.errors.number.0 }}</td>
-      </tr>
-
+{% extends "base.html" %}
+{% block content %}
+    {% include "contenthead.html" with title="库存管理" %}
+    <table id="listTb" class="table table-sm table-bordered table-hover">
+        <thead class="thead-light">
+              <tr>
+                <th>型号</th>
+                <th>数量</th>
+                <th>厂家</th>
+              </tr>
+        </thead>
+        <tbody>
+        {% for stock in stock_list %}
+              <tr id="tr">
+                <td>{{ stock.pm__model }}</td>
+                <td>{{ stock.number }}</td>
+                <td>{{ stock.pm__fn__name }}</td>
+              </tr>
+        {% endfor %}
+        </tbody>
     </table>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</div>
+{% endblock %}
+{% block script %}
 <script>
-        function deleteProduct(tr) {
-        $(tr).parent().parent().remove();
-        }
-        function addProduct() {
-            let tr = document.getElementById("tr")
-            let clonedNode = tr.cloneNode(true)
-           $(clonedNode).append('<td><a onclick="deleteProduct(this)">删除</a></td>')
-            tr.parentNode.appendChild(clonedNode)
-        }
+
 </script>
-</body>
-</html>
+{% endblock script %}

@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    {% include "contenthead.html"  with title="客户订单创建" %}
+
+    {% include "contenthead.html"  with title="采购订单创建" %}
     <div class="row">
         <div class="col-7">
             <div>
-                {{ factory_select.fn.label }}{{ factory_select.fn }}
                 <button type="button" class="btn btn-sm btn-primary" onclick="addProduct()">添加型号</button>
             </div>
             <h6>订单列表</h6>
-            <table border="1" id="listTb" class="table table-bordered">
+            <table id="listTb" class="table table-sm table-bordered">
                 <thead>
                 <tr>
                     <th>型号</th>
@@ -33,19 +33,20 @@
 
                 </div>
             </div>
-
             <form action="createorder" method="post" id="f1">
                 {% csrf_token %}
                 <p>{{ formObj.ordernum.label }}{{ formObj.ordernum }}{{ formObj.errors.ordernum.0 }}</p>
-                <p>{{ formObj.ocn_id.label }}{{ formObj.ocn_id }}{{ formObj.errors.ocn_id.0 }}</p>
                 <p>{{ formObj.ordervalue.label }}{{ formObj.ordervalue }}{{ formObj.errors.ordervalue.0 }}</p>
-                <p>{{ formObj.arrears.label }}{{ formObj.arrears }}{{ formObj.errors.arrears.0 }}</p>
-                <p>{{ formObj.on_id.label }}{{ formObj.on_id }}{{ formObj.errors.on_id.0 }}</p>
+                <p>{{ formObj.fn_id.label }}{{ formObj.fn_id }}{{ formObj.errors.fn_id.0 }}</p>
                 <p>{{ formObj.os_id.label }}{{ formObj.os_id }}{{ formObj.errors.os_id.0 }}</p>
+                <p>{{ formObj.payment.label }}{{ formObj.payment }}{{ formObj.errors.payment.0 }}</p>
                 <p>{{ formObj.comment.label }}{{ formObj.comment }}{{ formObj.errors.comment.0 }}</p>
             </form>
         </div>
+
     </div>
+
+
 {% endblock %}
 {% block script %}
     <script>
@@ -53,11 +54,13 @@
             $(dom).parent().parent().remove();
             calcordervalue()
         }
-
+        $("#id_fn_id").on("change", function () {
+            $('#listTbtbody').children().remove()
+            $('#id_ordervalue').val(0)
+        })
         $('#listTbtbody').on('input propertychange', function () {
             calcordervalue()
         })
-
         function calcordervalue() {
             let tbody = $('#listTbtbody')
             let total = 0
@@ -70,8 +73,7 @@
         }
 
         function addProduct() {
-            let listTbtbody = $('#listTbtbody')
-            let fn_id = $("#id_fn").val()
+            let fn_id = $("[name='fn_id']").val()
             $.ajax({
                 url: "/crm/getpms",
                 method: "POST",
@@ -86,9 +88,9 @@
                     }
                     listTbtbody.append(
                         `<tr><td>${select}</select></td>
-    <td><input class="form-control number" style="width: 70px" type="number" value=1></td>
-    <td><input class="form-control value" style="width: 70%" type="number" value=0></td>
-    <td><a onclick="deleteProduct(this)">删除</a></td></tr>`
+<td><input class="form-control number" style="width: 70px" type="number" value=1></td>
+<td><input class="form-control value" style="width: 70%" type="number" value=0></td>
+<td><a onclick="deleteProduct(this)">删除</a></td></tr>`
                     )
                 },
             })
@@ -120,10 +122,9 @@
                 toastr.warning("提醒：产品列表不能为空")
                 return
             }
-            data += "&orderList=" + JSON.stringify(getTbList())
-            console.log(data)
+            data += "&orderList=" + JSON.stringify(list)
             $.ajax({
-                url: "/crm/createorder",
+                url: "/crm/createpurchaseorder",
                 method: "POST",
                 data: data,
                 success: function (arg) {
@@ -134,8 +135,10 @@
                             $(`input[name|=${i}`).after(`<span class="err">${tmp}</span>`)
                         }
                         toastr.error("失败了：" + m.msg)
+
                     } else {
                         toastr.success("采购订单创建成功!")
+
                     }
                 },
             })

@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, redirect
-from django.db.models import Q
+from django.db.models import Q,F
 from crm import formvaild
 from crm import models
 import json
@@ -11,7 +11,8 @@ class DateEncoder(json.JSONEncoder):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         else:
             return json.JSONEncoder.default(self,obj)
-
+def home(request):
+    return render(request,'crm/index.html',{'title':'index'})
 def genConditions(lst):
     con = Q()
     # lst = [{"key1":[]},{"key2":[]},{"key3":[]}]
@@ -38,7 +39,8 @@ def createorder(req):
     if req.method == "GET":
         form_obj = formvaild.CustomerOrderForm()
         order_list = formvaild.OrderListForm()
-        return render(req, "crm/createorder.html", {"formObj": form_obj, "orderList": order_list})
+        factory_select = formvaild.FactorySelectForm()
+        return render(req, "crm/createorder.html", {"formObj": form_obj, "orderList": order_list,"factory_select":factory_select})
     formObj = formvaild.CustomerOrderForm(req.POST)
     resp = {"msg": "", "status": "ok", "err": formObj.errors}
     if formObj.is_valid():
@@ -50,6 +52,7 @@ def createorder(req):
             li = list(map(lambda x: models.OrderList(order_id=orderNum, pm_id=x["pm_id"], productnum=x["productnum"]),
                           orderList))
             models.OrderList.objects.bulk_create(li)
+            updateStock(orderList,"minus")
         except Exception as e:
             print(e)
             resp["msg"] = e.__str__()
@@ -129,16 +132,18 @@ class Orderlist(View):
         print(ret.query)
         # print(list(ret))
         return HttpResponse(json.dumps({"data":list(ret),"tablehead":self.colsMap},cls=DateEncoder))
+
 def stocklist(req):
     if req.method == "GET":
         data = models.Stock.objects.all()
         return render(req, "crm/stocklist.html", {"data": data})
 
-
 class Storage(View):
     def get(self,req):
         stock_list = formvaild.StorageForm()
-        return render(req, "crm/storage.html", {"stock_list": stock_list})
+        all = models.Stock.objects.select_related("pm_id","pm__fn_id").all().values("pm__model","number","pm__fn__name")
+        print(list(all))
+        return render(req, "crm/storage.html", {"stock_list": list(all)})
 
     def post(self,req):
         return HttpResponse("post")
@@ -151,5 +156,51 @@ class Customer(View):
     def post(self,req):
         return HttpResponse("post")
 
-def home(request):
-    return render(request,'crm/index.html',{'title':'index'})
+class CreatePurchaseOrder(View):
+    @staticmethod
+    def addProduct(req):
+        fn_id = req.POST.get("fn_id")
+        ret=  models.ProductModel.objects.filter(fn_id=fn_id).values()
+        return HttpResponse(json.dumps({"pms":list(ret)}))
+
+    def get(self,req):
+        form_obj = formvaild.PurchaseOrderForm()
+        order_list = formvaild.OrderListForm()
+        # return render(req, "crm/createpurchaseorder.html", {"formObj": form_obj, "orderList": order_list})        order_list = formvaild.OrderListForm()
+        return render(req, "crm/createpurchaseorder.html", {"formObj": form_obj})
+
+    def post(self,req):
+        formObj = formvaild.PurchaseOrderForm(req.POST)
+        resp = {"msg": "", "status": "ok", "err": formObj.errors}
+        if formObj.is_valid():
+            print(formObj.cleaned_data)
+            orderNum = formObj.cleaned_data["ordernum"]
+            orderList = json.loads(req.POST.get("orderList"))
+            try:
+                models.PurchaseOrder.objects.create(**formObj.cleaned_data)
+                li = list(
+                    map(lambda x: models.PurchaseOrderList(order_id=orderNum, pm_id=x["pm_id"], productnum=x["productnum"]),
+                        orderList))
+                models.PurchaseOrderList.objects.bulk_create(li)
+                updateStock(orderList,"add")
+            except Exception as e:
+                print(e)
+                resp["msg"] = e.__str__()
+                resp["status"] = "err"
+        else:
+            resp["status"] = "err"
+        print(resp)
+        return HttpResponse(json.dumps(resp))
+
+def updateStock(pmlist,opt):
+    for one in pmlist:
+        pm_id = one["pm_id"]
+        number = one["productnum"]
+        o = models.Stock.objects.filter(pm_id=pm_id)
+        if o.exists():
+            if opt == "add":
+                o.update(number=F("number") + number)
+            else:
+                o.update(number=F("number") - number)
+        else:
+            models.Stock.objects.create(pm_id=pm_id, number=number)

@@ -1,30 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
+    {% include "contenthead.html"  with title="订单查询" %}
     <div class="row">
         <div class="col-12">
-            <div>
-        <div>
-            <div id="searchOrder">
-                <label for="search" class="col-form-label-sm">查询条件</label>
-                <select id="condition" class="form-control-sm">
-                    {% for k,v in selectOptions.items %}
-                        <option value="{{ k }}">{{ v }}</option>
-                    {% endfor %}
-                </select>
-                        <button class="btn-sm btn-success" onclick="addCondition()">添加条件</button>
-            <button class="btn-sm btn-primary" onclick="searchOrders()">开始搜索</button>
+            <div class="row">
+                <div id="searchOrder" class="col-6">
+                    <label for="search" class="col-form-label-sm">查询条件</label>
+                    <select id="condition" class="form-control-sm">
+                        {% for k,v in selectOptions.items %}
+                            <option value="{{ k }}">{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn-sm btn-success" onclick="addCondition()">添加条件</button>
+                </div>
+                <div class="col-6">
+                    <button class="btn-sm btn-primary" onclick="searchOrders()">开始搜索</button>
+                </div>
+                <div id="searchinput">
+                </div>
             </div>
-        </div>
-
-        <div id="searchinput">
-        </div>
-    </div>
         </div>
         <div class="col-12" id="listTb">
 
         </div>
     </div>
-    {% include "crm/motal.html" with title="订单详情"%}
+    {% include "crm/motal.html" with title="订单详情" %}
 {% endblock %}
 
 {% block script %}
@@ -80,7 +80,7 @@
             return obj
         }
 
-        function makeColums(id,data) {
+        function makeColums(id, data) {
             let tb = $(id)
             tb.empty()
             let thead = ''
@@ -99,6 +99,7 @@
             }
             tb.append(`<table class="table table-hover table-bordered">${thead}<tbody class="">${tbody}</tbody></table>`)
         }
+
         function showOrderDetail(e) {
             let orderNum = $(e).parent().parent().children().first()[0].innerText
             let data = {"orderNum": orderNum, csrfmiddlewaretoken: '{{ csrf_token }}'}
@@ -107,11 +108,12 @@
                 method: "POST",
                 data: data,
                 success: function (arg) {
-                    makeColums('#modalbody',JSON.parse(arg))
+                    makeColums('#modalbody', JSON.parse(arg))
                     $('#mymodal').modal('show')
                 }
             })
         }
+
         function searchOrders() {
             let data = {"data": JSON.stringify(getConditions2()), csrfmiddlewaretoken: '{{ csrf_token }}'}
             $.ajax({
@@ -119,7 +121,7 @@
                 method: "POST",
                 data: data,
                 success: function (arg) {
-                    makeColums("#listTb",JSON.parse(arg))
+                    makeColums("#listTb", JSON.parse(arg))
                 }
             })
         }

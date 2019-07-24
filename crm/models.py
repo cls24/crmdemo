@@ -30,7 +30,7 @@ class CustomerLevel(Model):
     name = models.CharField(max_length=32)
 
 class CustomerOrder(Model):
-    ordernum = models.BigIntegerField(primary_key=True,null=False,default=0)
+    ordernum = models.BigIntegerField(primary_key=True)
     addtime = models.DateTimeField(auto_now_add=True)
     ordervalue = models.FloatField()
     arrears = models.FloatField()
@@ -54,8 +54,8 @@ class CustomerOrderType(Model):
 class OrderList(Model):
     order = models.ForeignKey("CustomerOrder",to_field="ordernum",on_delete=models.CASCADE)
     pm = models.ForeignKey("ProductModel",on_delete=models.CASCADE)
-    productnum = models.IntegerField(null=False,default=1)
-    ctime = models.DateTimeField(auto_now_add=True)
+    productnum = models.IntegerField()
+
 class ProductModel(Model):
     model = models.CharField(max_length=128)
     value = models.FloatField()
@@ -66,20 +66,21 @@ class Factory(Model):
 
 class Stock(Model):
     number = models.IntegerField()
-    addtime = models.DateTimeField(auto_now_add=True)
     pm = models.ForeignKey("ProductModel",on_delete=models.CASCADE)
 
 class PurchaseOrder(Model):
-    addtime = models.DateTimeField()
+    ordernum = models.BigIntegerField(primary_key=True)
+    addtime = models.DateTimeField(auto_now_add=True)
     ordervalue = models.FloatField()
-    status = models.BooleanField(default=False)
+    payment = models.FloatField()
     comment = models.CharField(max_length=256)
     fn = models.ForeignKey("Factory",on_delete=models.CASCADE)
-    
+    os = models.ForeignKey("OrderStatus",on_delete=models.CASCADE)
+
 class PurchaseOrderList(Model):
+    productnum = models.IntegerField(null=False)
     order = models.ForeignKey("PurchaseOrder",on_delete=models.CASCADE)
     pm = models.ForeignKey("ProductModel",on_delete=models.CASCADE)
-
 
 def initData():
     role_data = {"name":"admin"}

@@ -35,6 +35,7 @@ class CustomerOrderForm(forms.Form):
         required=True,
         max_value=9999999,
         min_value=0,
+        initial=int(0),
         error_messages={
             "required":"不能为空",
             "max_value":"超过9999999",
@@ -46,6 +47,7 @@ class CustomerOrderForm(forms.Form):
         required=True,
         max_value=9999999,
         min_value=0,
+        initial=int(0),
         error_messages={
             "required":"不能为空",
             "max_value":"超过9999999",
@@ -81,6 +83,14 @@ class CustomerOrderForm(forms.Form):
     comment.widget.attrs.update({'class': 'form-control'})
     ocn_id.widget.attrs.update({'class': 'form-control'})
     on_id.widget.attrs.update({'class': 'form-control'})
+class FactorySelectForm(forms.Form):
+    fn = forms.TypedChoiceField(
+        coerce=lambda x: int(x),
+        label="厂家名",
+        required=True,
+        choices=models.Factory.objects.values_list("id", "name")
+    )
+    # id.widget.attrs.update({'class': 'form-control'})
 
 class OrderListForm(forms.Form):
     pm_id = forms.fields.TypedChoiceField(
@@ -103,19 +113,74 @@ class OrderListForm(forms.Form):
     )
     pm_id.widget.attrs.update({'class': 'form-control'})
     productnum.widget.attrs.update({'class': 'form-control'})
+class PurchaseOrderForm(forms.Form):
+    ordernum = forms.IntegerField(
+        label="订单号",
+        required=True,
+        min_value=0,
+        initial=int(time.strftime("%Y%m%d%H%M", time.localtime())),
+        error_messages={
+            "required": "不能为空",
+            "min_value": "不能为负数",
+        }
+    )
+    ordervalue = forms.fields.FloatField(
+        label="订单总金额",
+        required=True,
+        max_value=9999999,
+        min_value=0,
+        initial=int(0),
+        error_messages={
+            "required":"不能为空",
+            "max_value":"超过9999999",
+            "min_value":"不能为负数",
+        }
+    )
+    payment = forms.fields.FloatField(
+        label="已支付金额",
+        required=True,
+        max_value=9999999,
+        min_value=0,
+        initial=int(0),
+        error_messages={
+            "required":"不能为空",
+            "max_value":"超过9999999",
+            "min_value":"不能为负数",
+        }
+    )
+    os_id = forms.fields.ChoiceField(
+        label="状态",
+        required=True,
+        choices=models.OrderStatus.objects.values_list("id", "name")
+    )
+    comment = forms.fields.CharField(
+        label="备注",
+        required=False,
+        widget=forms.Textarea,
+    )
+    fn_id = forms.fields.TypedChoiceField(
+        coerce=lambda x: int(x),
+        label="厂家",
+        required=True,
+        choices=models.Factory.objects.values_list("id","name")
+    )
+
+    ordernum.widget.attrs.update({'class': 'form-control'})
+    ordervalue.widget.attrs.update({'class': 'form-control'})
+    payment.widget.attrs.update({'class': 'form-control'})
+    os_id.widget.attrs.update({'class': 'form-control'})
+    comment.widget.attrs.update({'class': 'form-control'})
+    fn_id.widget.attrs.update({'class': 'form-control'})
+
 class StorageForm(forms.Form):
-    # fn_id = forms.TypedChoiceField(
-    #     coerce=lambda x: int(x),
-    #     label="厂家名",
-    #     required=True,
-    #     choices=models.Factory.objects.values_list("id", "name")
-    # )
+
     pm_id = forms.fields.TypedChoiceField(
         coerce=lambda x: int(x),
         label="产品型号",
         required=True,
         choices=models.ProductModel.objects.values_list("id","model")
     )
+
     number = forms.IntegerField(
         label="产品数量",
         required=True,
