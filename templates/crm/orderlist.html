@@ -2,9 +2,9 @@
 {% block content %}
     {% include "contenthead.html"  with title="订单查询" %}
     <div class="row">
-        <div class="col-12">
-            <div class="row">
-                <div id="searchOrder" class="col-6">
+        <div class="col-6">
+
+            <div id="searchOrder">
                     <label for="search" class="col-form-label-sm">查询条件</label>
                     <select id="condition" class="form-control-sm">
                         {% for k,v in selectOptions.items %}
@@ -12,16 +12,29 @@
                         {% endfor %}
                     </select>
                     <button class="btn-sm btn-success" onclick="addCondition()">添加条件</button>
-                </div>
-                <div class="col-6">
-                    <button class="btn-sm btn-primary" onclick="searchOrders()">开始搜索</button>
-                </div>
-                <div id="searchinput">
-                </div>
-            </div>
-        </div>
-        <div class="col-12" id="listTb">
 
+                <label for="search" class="col-form-label-sm">每页数量</label>
+                <select id="page_number" class="form-control-sm">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                </select></div>
+            </div>
+
+    <div class="col-6">
+                    <button class="btn-sm btn-primary" id="searchorderlist">开始搜索</button>
+
+    </div>
+        </div>
+    <div id="searchinput">
+    </div>
+    <div>
+        <div id="listTb">
+
+        </div>
+        <div id="pagination">
+
+        </div>
         </div>
     </div>
     {% include "crm/motal.html" with title="订单详情" %}
@@ -29,6 +42,13 @@
 
 {% block script %}
     <script>
+        $('#searchorderlist').on('click', function () {
+            searchOrders(1, $('#page_number').val())
+        })
+        $("body").delegate(".page-item", "click", function (e) {
+            let dom = $(e.currentTarget)
+            searchOrders(dom.children().first().text(), $('#page_number').val())
+        })
 
         function deleteProduct(dom) {
             $(dom).parent().remove();
@@ -114,14 +134,42 @@
             })
         }
 
-        function searchOrders() {
-            let data = {"data": JSON.stringify(getConditions2()), csrfmiddlewaretoken: '{{ csrf_token }}'}
+        function createPagination(currentpage, shownum, totalpg) {
+            let div = $('#pagination')
+            div.children().remove()
+            let lis = ''
+            let mid = Math.floor(shownum / 2)
+            currentpage = parseInt(currentpage)
+            let start = currentpage - mid > 0 ? currentpage - mid : 1
+            let end = currentpage + mid < totalpg ? currentpage + mid : totalpg
+
+            for (let i = start; i <= end; i++) {
+                {#console.log(`i:${i} currentpage:${currentpage}`)#}
+                let active = ''
+                if (i === currentpage) {
+                    active = 'active'
+                }
+                lis += `<li class="page-item page ${active}"><a class="page-link" href="#">${i}</a></li>`
+                {#console.log(lis)#}
+            }
+            div.append(`<span>共[${totalpg}]页</span><nav aria-label="..."><ul class="pagination">${lis}</ul></nav>`)
+        }
+
+        function searchOrders(currentpage, page_number) {
+            let data = {
+                "data": JSON.stringify(getConditions2()),
+                "pn": currentpage,
+                "page_number": page_number,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            }
             $.ajax({
                 url: "/crm/orderlist",
                 method: "POST",
                 data: data,
                 success: function (arg) {
-                    makeColums("#listTb", JSON.parse(arg))
+                    let data = JSON.parse(arg)
+                    makeColums("#listTb", data)
+                    createPagination(currentpage, 5, data.total_page)
                 }
             })
         }

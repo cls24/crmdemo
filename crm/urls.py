@@ -12,5 +12,6 @@ urlpatterns = [
     path('initdata', views.initdata),
     path('storage', views.Storage.as_view()),
     path('customer', views.Customer.as_view()),
-    path('home',views.home)
+    path('home',views.home),
+    path('checkstock',views.Ajax.checkStock)
 ]

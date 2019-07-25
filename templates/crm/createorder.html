@@ -92,7 +92,7 @@
                         `<tr><td>${select}</select></td>
     <td><input class="form-control number" style="width: 70px" type="number" value=1></td>
     <td><input class="form-control value" style="width: 70%" type="number" value=0></td>
-    <td><a onclick="deleteProduct(this)">删除</a></td></tr>`
+    <td><button class="btn btn-sm btn-warning" onclick="deleteProduct(this)">删除</button></td></tr>`
                     )
                 },
             })
@@ -116,6 +116,29 @@
             }
         }
 
+        function checkStock(list) {
+            let url = '/crm/checkstock'
+            obj = {"list":list}
+            let formdata = new FormData
+            formdata.append("csrfmiddlewaretoken",'{{ csrf_token }}')
+            formdata.append("data",JSON.stringify(obj))
+            fetch(url , {
+              method: 'POST',
+              body:formdata,
+            })
+                .then(res => res.json())
+                .then(function (json) {
+                    if(json.status==="ok"){
+                        toastr.success("成功!")
+                        return true
+                    }else {
+                        toastr.error("失败了：" + json.msg)
+                        return false
+                    }
+                })
+                .catch((e)=>toastr.error(e))
+        }
+
         function AjaxPost() {
             clearErr()
             let data = $("#f1").serialize()
@@ -124,8 +147,8 @@
                 toastr.warning("提醒：产品列表不能为空")
                 return
             }
+            if (!checkStock(list)){return}
             data += "&orderList=" + JSON.stringify(getTbList())
-            console.log(data)
             $.ajax({
                 url: "/crm/createorder",
                 method: "POST",

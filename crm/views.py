@@ -1,10 +1,12 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.db.models import Q,F
+from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
 from crm import formvaild
 from crm import models
 import json
 from django.views import View
 import datetime,time
+
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj,datetime.datetime):
@@ -13,21 +15,25 @@ class DateEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self,obj)
 def home(request):
     return render(request,'crm/index.html',{'title':'index'})
-def genConditions(lst):
-    con = Q()
-    # lst = [{"key1":[]},{"key2":[]},{"key3":[]}]
-    for i in lst:
-        q = Q()
-        if i[0] == "addtime" or i[0] == "ordervalue" or i[0] == "arrears":
-            q.connector = "AND"
-            q.children.append((i[0]+"__gte", i[1][0]))
-            q.children.append((i[0]+"__lte", i[1][1]))
-        else:
-            q.connector = "OR"
-            for j in i[1]:
-                q.children.append((i[0],j))
-        con.add(q,"AND")
-    return con
+
+
+class Conditions:
+    @staticmethod
+    def orderListQ(lst):
+        con = Q()
+        # lst = [{"key1":[]},{"key2":[]},{"key3":[]}]
+        for i in lst:
+            q = Q()
+            if i[0] == "addtime" or i[0] == "ordervalue" or i[0] == "arrears":
+                q.connector = "AND"
+                q.children.append((i[0] + "__gte", i[1][0]))
+                q.children.append((i[0] + "__lte", i[1][1]))
+            else:
+                q.connector = "OR"
+                for j in i[1]:
+                    q.children.append((i[0], j))
+            con.add(q, "AND")
+        return con
 def initdata(req):
     resp = "ok"
     try:
@@ -118,21 +124,19 @@ class Orderlist(View):
 
     def post(self,req):
         obj = req.POST.get("data")
+        pn = req.POST.get("pn")
+        page_number = req.POST.get("page_number")
         obj = json.loads(obj)
         obj = list(map(lambda x:self.paser(x),obj.items()))
-        print(obj)
-        # select = {x[0].replace("name","id__in"):x[1] for x in obj["select"].items()}
-        # _ipt = obj["input"]
-        # ipt = {}
-        # if _ipt:
-        #     for k,v in _ipt.items():
-        #         if k == "comment":
-        #             ipt[k+"__contains"]=v
-        ret = models.CustomerOrder.objects.filter(genConditions(obj)).select_related("on_id","os_id","ocn_id").values(
+        ret = models.CustomerOrder.objects.filter(Conditions.orderListQ(obj)).select_related("on_id","os_id","ocn_id").values(
             *self.colsMap.keys())
-        print(ret.query)
-        # print(list(ret))
-        return HttpResponse(json.dumps({"data":list(ret),"tablehead":self.colsMap},cls=DateEncoder))
+        p = Paginator(list(ret), page_number)
+        # print(ret.query)
+        return HttpResponse(json.dumps({
+            "data":p.page(pn).object_list,
+            "page_range":[p.page_range.start,p.page_range.stop],
+            "total_page":p.num_pages,
+            "tablehead":self.colsMap},cls=DateEncoder))
 
 def stocklist(req):
     if req.method == "GET":
@@ -205,3 +209,25 @@ def updateStock(pmlist,opt):
                 o.update(number=F("number") - number)
         else:
             models.Stock.objects.create(pm_id=pm_id, number=number)
+
+class Ajax:
+    @staticmethod
+    def checkStock(req):
+        data = req.POST.get("data")
+        li = json.loads(data)["list"]
+        dic = {}
+        for i in li:
+            pm_id = i["pm_id"]
+            number = int(i["productnum"])
+            if dic.get(pm_id):
+                dic[pm_id] = dic[pm_id] + number
+            else:
+                dic[pm_id] = number
+        ret = {"msg": "","status":"ok"}
+        for i,n in dic.items():
+            o = models.Stock.objects.filter(pm_id=i).values("number","pm__model").first()
+            if o["number"] < n:
+                ret["status"] = "err"
+                ret["msg"]+="%s 库存数量%d 少于订单数量%s"%(o["pm__model"],o["number"],dic[i])
+        print(ret)
+        return HttpResponse(json.dumps(ret))
